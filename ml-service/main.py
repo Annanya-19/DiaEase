@@ -15,14 +15,13 @@ feature_names = ['glucose','iob','carbs','activity','hour','trend',
                  'mins_since_meal','glucose_velocity','prev_hypo_24h']
 
 # === LAYER 2: Personal calibration per user ===
-# Stores correction factors learned from each user's feedback
 personal_factors = defaultdict(lambda: {
-    "iob_sensitivity": 1.0,      # multiplier on IOB effect
-    "glucose_sensitivity": 1.0,  # multiplier on glucose risk
+    "iob_sensitivity": 1.0,
+    "glucose_sensitivity": 1.0,
     "feedback_count": 0,
     "correct_predictions": 0,
     "total_predictions": 0,
-    "prediction_history": []     # last 20 predictions vs actuals
+    "prediction_history": []
 })
 
 class PredictRequest(BaseModel):
@@ -35,7 +34,7 @@ class PredictRequest(BaseModel):
     mins_since_meal: float
     glucose_velocity: Optional[float] = -0.1
     prev_hypo_24h: Optional[int] = 0
-    user_id: Optional[str] = None  # for Layer 2 personalization
+    user_id: Optional[str] = None
 
 class FeedbackRequest(BaseModel):
     user_id: str
@@ -48,8 +47,8 @@ class FeedbackRequest(BaseModel):
     mins_since_meal: float
     glucose_velocity: Optional[float] = -0.1
     prev_hypo_24h: Optional[int] = 0
-    predicted_risk: float          # what we predicted
-    actual_hypo: int               # 1 if hypo occurred, 0 if not
+    predicted_risk: float
+    actual_hypo: int
     actual_glucose: Optional[float] = None
 
 @app.post("/predict")
@@ -58,22 +57,21 @@ def predict(req: PredictRequest):
           req.hour, req.trend, req.mins_since_meal,
           req.glucose_velocity, req.prev_hypo_24h]]
 
-    # === LAYER 1: Global model prediction ===
     proba = global_model.predict_proba(X)[0]
     base_risk = float(proba[1])
 
-    # === LAYER 2: Apply personal calibration if user has feedback history ===
     personal_risk = base_risk
     layer2_active = False
     personalization_progress = 0
+    feedback_needed = 5
 
-    if req.user_id and req.user_id in personal_factors:
+    if req.user_id:
         pf = personal_factors[req.user_id]
         feedback_count = pf["feedback_count"]
         personalization_progress = min(feedback_count, 10)
+        feedback_needed = max(0, 5 - feedback_count)
 
         if feedback_count >= 5:
-            # Apply learned sensitivity factors
             layer2_active = True
             iob_adjustment = (req.iob * (pf["iob_sensitivity"] - 1.0)) * 0.1
             glucose_adjustment = ((req.glucose - 5.0) * (pf["glucose_sensitivity"] - 1.0)) * 0.05
@@ -101,59 +99,51 @@ def predict(req: PredictRequest):
         "modelVersion": "gbm-v1-ohio",
         "layer2Active": layer2_active,
         "personalizationProgress": personalization_progress,
-        "feedbackNeeded": max(0, 5 - personal_factors[req.user_id]["feedback_count"]) if req.user_id else 5
+        "feedbackNeeded": feedback_needed
     }
 
 @app.post("/feedback")
 def feedback(req: FeedbackRequest):
     pf = personal_factors[req.user_id]
 
-    # Record this feedback
     pf["feedback_count"] += 1
     pf["total_predictions"] += 1
 
-    # Was prediction correct?
     predicted_hypo = req.predicted_risk > 0.65
     actually_hypo = req.actual_hypo == 1
 
     if predicted_hypo == actually_hypo:
         pf["correct_predictions"] += 1
 
-    # Store history
     pf["prediction_history"].append({
         "predicted_risk": req.predicted_risk,
         "actual_hypo": req.actual_hypo,
         "glucose": req.glucose,
         "iob": req.iob
     })
-    # Keep only last 20
+
     if len(pf["prediction_history"]) > 20:
         pf["prediction_history"] = pf["prediction_history"][-20:]
 
-    # === LAYER 2 CALIBRATION ===
-    # After 5+ feedback events, learn personal sensitivity factors
     if pf["feedback_count"] >= 5:
         history = pf["prediction_history"]
-
-        # Cases where we predicted no hypo but hypo occurred
-        # = patient is MORE sensitive than global model thinks
         missed_hypos = [h for h in history if h["predicted_risk"] < 0.4 and h["actual_hypo"] == 1]
-
-        # Cases where we predicted hypo but none occurred  
-        # = patient is LESS sensitive than global model thinks
         false_alarms = [h for h in history if h["predicted_risk"] > 0.65 and h["actual_hypo"] == 0]
 
-        # Adjust IOB sensitivity based on missed/false alarms
         if len(missed_hypos) > len(false_alarms):
-            # Under-predicting risk — increase sensitivity
             pf["iob_sensitivity"] = min(1.5, pf["iob_sensitivity"] + 0.05)
             pf["glucose_sensitivity"] = min(1.5, pf["glucose_sensitivity"] + 0.05)
         elif len(false_alarms) > len(missed_hypos):
-            # Over-predicting risk — decrease sensitivity
             pf["iob_sensitivity"] = max(0.5, pf["iob_sensitivity"] - 0.05)
             pf["glucose_sensitivity"] = max(0.5, pf["glucose_sensitivity"] - 0.05)
 
     accuracy = pf["correct_predictions"] / pf["total_predictions"] if pf["total_predictions"] > 0 else 0
+    feedbacks_remaining = max(0, 5 - pf["feedback_count"])
+
+    if pf["feedback_count"] >= 5:
+        layer2_msg = "Layer 2 active - model is personalised to you"
+    else:
+        layer2_msg = f"Layer 2 activates in {feedbacks_remaining} more feedbacks"
 
     return {
         "status": "feedback recorded",
@@ -162,7 +152,7 @@ def feedback(req: FeedbackRequest):
         "layer2Active": pf["feedback_count"] >= 5,
         "iobSensitivity": round(pf["iob_sensitivity"], 3),
         "glucoseSensitivity": round(pf["glucose_sensitivity"], 3),
-        "message": f"Layer 2 {'active' if pf['feedback_count'] >= 5 else f'activates in {5 - pf[chr(34)]feedback_count[chr(34)]} more feedbacks'}"
+        "message": layer2_msg
     }
 
 @app.get("/personal-profile/{user_id}")
@@ -170,13 +160,14 @@ def get_profile(user_id: str):
     if user_id not in personal_factors:
         return {"user_id": user_id, "feedback_count": 0, "layer2_active": False}
     pf = personal_factors[user_id]
+    accuracy = round(pf["correct_predictions"] / max(1, pf["total_predictions"]) * 100, 1)
     return {
         "user_id": user_id,
         "feedback_count": pf["feedback_count"],
         "layer2_active": pf["feedback_count"] >= 5,
         "iob_sensitivity": pf["iob_sensitivity"],
         "glucose_sensitivity": pf["glucose_sensitivity"],
-        "accuracy": round(pf["correct_predictions"] / max(1, pf["total_predictions"]) * 100, 1)
+        "accuracy": accuracy
     }
 
 @app.get("/health")
