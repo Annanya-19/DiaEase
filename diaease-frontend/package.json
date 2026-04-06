@@ -1,5 +1,4 @@
 {
-<<<<<<< HEAD
   "name": "diaease-frontend",
   "private": true,
   "version": "0.0.0",
@@ -31,34 +30,5 @@
     "tailwindcss": "^3.4.1",
     "typescript": "^5.2.2",
     "vite": "^5.1.4"
-=======
-  "name": "diasense",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "@anthropic-ai/sdk": "^0.82.0",
-    "@supabase/supabase-js": "^2.101.1",
-    "groq-sdk": "^1.1.2",
-    "next": "16.2.2",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "zod": "^4.3.6"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20.19.39",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.2",
-    "tailwindcss": "^4",
-    "typescript": "^5"
->>>>>>> 7b1e2ce3f209abf522a7610191e514d87f35e399
   }
 }

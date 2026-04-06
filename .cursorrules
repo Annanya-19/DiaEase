@@ -1,0 +1,42 @@
+# DiaEase — project context
+
+## Root
+
+- **Repository root for this app:** `DiaEase/` (same directory as `package.json`).
+- Local env: `.env.local` (already present; never commit secrets).
+- Prefer paths relative to this root when editing or importing.
+
+## Layout (authoritative)
+
+```
+DiaEase/
+  app/
+    api/
+      analyse/route.ts
+      explain/route.ts
+      simulate/route.ts
+      session/route.ts
+      alerts/route.ts
+      passport/route.ts
+  lib/
+    iob-calculator.ts
+    circadian.ts
+    risk-engine.ts
+    simulation-engine.ts
+    supabase.ts
+  types/
+    index.ts
+```
+
+- **API:** Next.js App Router route handlers under `app/api/<name>/route.ts`. Keep HTTP concerns (request/response, validation, auth) in routes; delegate domain logic to `lib/`.
+- **lib/:** Pure or side-effect–bounded modules (calculations, engines, Supabase client). Reuse from routes and server code; avoid importing server-only modules into client components without `"use client"` boundaries respected.
+- **types/:** Shared TypeScript types and interfaces; export from `types/index.ts` for a single import surface.
+
+## Next.js
+
+This stack may differ from older Next.js docs. Before changing App Router APIs, layouts, or data fetching, check the guide under `node_modules/next/dist/docs/` in this project and follow deprecation notices.
+
+## Conventions
+
+- Match existing naming, imports, and error-handling patterns in nearby files.
+- Keep changes scoped to the task; no unrelated refactors or extra markdown files unless asked.
