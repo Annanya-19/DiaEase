@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import Optional
 import joblib
 import numpy as np
-from collections import defaultdict
+
 
 app = FastAPI(title="DiaEase ML Service - 2 Layer System")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -15,14 +15,19 @@ feature_names = ['glucose','iob','carbs','activity','hour','trend',
                  'mins_since_meal','glucose_velocity','prev_hypo_24h']
 
 # === LAYER 2: Personal calibration per user ===
-personal_factors = defaultdict(lambda: {
-    "iob_sensitivity": 1.0,
-    "glucose_sensitivity": 1.0,
-    "feedback_count": 0,
-    "correct_predictions": 0,
-    "total_predictions": 0,
-    "prediction_history": []
-})
+personal_factors = {}
+
+def get_user_profile(user_id: str):
+    if user_id not in personal_factors:
+        personal_factors[user_id] = {
+            "iob_sensitivity": 1.0,
+            "glucose_sensitivity": 1.0,
+            "feedback_count": 0,
+            "correct_predictions": 0,
+            "total_predictions": 0,
+            "prediction_history": []
+        }
+    return personal_factors[user_id]
 
 class PredictRequest(BaseModel):
     glucose: float
@@ -66,7 +71,7 @@ def predict(req: PredictRequest):
     feedback_needed = 5
 
     if req.user_id:
-        pf = personal_factors[req.user_id]
+        pf = get_user_profile(req.user_id)
         feedback_count = pf["feedback_count"]
         personalization_progress = min(feedback_count, 10)
         feedback_needed = max(0, 5 - feedback_count)
@@ -104,7 +109,7 @@ def predict(req: PredictRequest):
 
 @app.post("/feedback")
 def feedback(req: FeedbackRequest):
-    pf = personal_factors[req.user_id]
+    pf = get_user_profile(req.user_id)
 
     pf["feedback_count"] += 1
     pf["total_predictions"] += 1
