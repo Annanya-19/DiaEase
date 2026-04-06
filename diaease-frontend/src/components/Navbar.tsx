@@ -1,4 +1,4 @@
-import { Activity, ShieldCheck, User } from 'lucide-react';
+import { Activity, ShieldCheck, User, LayoutDashboard, Bell, FileInput } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion } from 'framer-motion';
 
@@ -8,54 +8,63 @@ interface NavbarProps {
 }
 
 export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
-  if (currentPage === 'login') return null; // No navbar on login
+  if (currentPage === 'login') return null; // No navbar on landing/login
+
+  const navItems = [
+    { id: 'input', label: 'Input Data', icon: <FileInput className="w-4 h-4" /> },
+    { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+    { id: 'alerts', label: 'Alerts', icon: <Bell className="w-4 h-4" /> }
+  ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
+    <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-6">
       <div className="max-w-[1600px] mx-auto">
-        <div className="glass-panel px-6 py-3 flex items-center justify-between shadow-sm">
+        <div className="glass-panel px-6 py-3 flex items-center justify-between border-white/40 backdrop-blur-2xl shadow-xl">
           {/* Logo */}
           <button 
             onClick={() => onNavigate('dashboard')}
-            className="flex items-center gap-2 group cursor-pointer"
+            className="flex items-center gap-3 group cursor-pointer"
           >
-            <div className="bg-theme-gold/20 p-2 rounded-xl group-hover:bg-theme-gold/30 transition-colors">
-              <Activity className="w-5 h-5 text-theme-gold" />
+            <div className="bg-purple-600/10 p-2 rounded-xl group-hover:bg-purple-600/20 transition-all group-hover:scale-110 border border-purple-200">
+              <Activity className="w-5 h-5 text-purple-700" />
             </div>
-            <span className="font-bold text-lg tracking-tight text-white">
-              DiaEase
-            </span>
+            <div className="flex flex-col items-start leading-none">
+              <span className="font-bold text-xl tracking-tighter text-slate-900">
+                Dia<span className="text-pink-600">Ease</span>
+              </span>
+              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest mt-1">Biotech AI</span>
+            </div>
           </button>
 
           {/* Nav Links / Status Badge */}
-          <div className="hidden md:flex items-center gap-8">
-             <div className="flex bg-white/5 border border-white/10 rounded-full px-4 py-1.5 items-center gap-2">
-               <ShieldCheck className="w-4 h-4 text-theme-neon" />
-               <span className="text-xs font-medium text-gray-300">On-device • No raw data shared</span>
+          <div className="hidden lg:flex items-center gap-4">
+             <div className="flex bg-purple-50 border border-purple-100 rounded-full px-4 py-1.5 items-center gap-2 mr-4">
+               <ShieldCheck className="w-4 h-4 text-pink-600" />
+               <span className="text-[10px] font-bold uppercase tracking-wider text-purple-700">Encrypted Metabolic Vault</span>
              </div>
 
-             <div className="flex gap-6 text-sm font-medium ml-4">
-              <button 
-                onClick={() => onNavigate('input')}
-                className={cn("transition-colors hover:text-white relative", (currentPage === 'input' || currentPage === 'loading') ? "text-white" : "text-gray-400")}
-              >
-                Input Data
-                {(currentPage === 'input' || currentPage === 'loading') && <motion.div layoutId="nav" className="absolute -bottom-1 left-0 right-0 h-[2px] bg-theme-gold rounded-full" />}
-              </button>
-              <button 
-                onClick={() => onNavigate('dashboard')}
-                className={cn("transition-colors hover:text-white relative", currentPage === 'dashboard' ? "text-white" : "text-gray-400")}
-              >
-                Dashboard
-                {currentPage === 'dashboard' && <motion.div layoutId="nav" className="absolute -bottom-1 left-0 right-0 h-[2px] bg-theme-gold rounded-full" />}
-              </button>
-              <button 
-                onClick={() => onNavigate('alerts')}
-                className={cn("transition-colors hover:text-white relative", currentPage === 'alerts' ? "text-white" : "text-gray-400")}
-              >
-                Alerts
-                {currentPage === 'alerts' && <motion.div layoutId="nav" className="absolute -bottom-1 left-0 right-0 h-[2px] bg-theme-gold rounded-full" />}
-              </button>
+             <div className="flex items-center gap-1 bg-slate-100/50 p-1 rounded-2xl border border-slate-200">
+              {navItems.map((item) => (
+                <button 
+                  key={item.id}
+                  onClick={() => onNavigate(item.id as any)}
+                  className={cn(
+                    "flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold transition-all relative group",
+                    (currentPage === item.id || (item.id === 'input' && currentPage === 'loading')) 
+                      ? "text-purple-900 bg-white shadow-sm" 
+                      : "text-slate-500 hover:text-purple-700 hover:bg-white/50"
+                  )}
+                >
+                  {item.icon}
+                  {item.label}
+                  {(currentPage === item.id || (item.id === 'input' && currentPage === 'loading')) && (
+                    <motion.div 
+                      layoutId="nav-active" 
+                      className="absolute inset-0 bg-white rounded-xl shadow-sm -z-10" 
+                    />
+                  )}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -63,12 +72,15 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
           <div className="flex items-center gap-4">
              <button 
               onClick={() => onNavigate('login')}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-white/10 transition-colors border border-transparent hover:border-white/10"
+              className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white/60 hover:bg-white/80 transition-all border border-white group shadow-sm"
             >
-               <div className="w-7 h-7 rounded-full bg-gradient-to-r from-theme-gold to-yellow-600 flex items-center justify-center">
-                 <User className="w-4 h-4 text-theme-navy" />
+               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center border border-white/20 shadow-md group-hover:scale-110 transition-transform">
+                 <User className="w-4 h-4 text-white" />
                </div>
-               <span className="text-sm font-medium text-gray-200 hidden sm:block">Jane. D</span>
+               <div className="flex flex-col items-start leading-none hidden sm:flex">
+                 <span className="text-sm font-bold text-slate-900">Researcher J. Doe</span>
+                 <span className="text-[10px] text-slate-500 font-bold uppercase mt-0.5 tracking-tight">Active Metadata Session</span>
+               </div>
              </button>
           </div>
         </div>
@@ -76,3 +88,4 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
     </nav>
   );
 }
+

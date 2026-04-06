@@ -4,29 +4,67 @@
 
 @layer utilities {
   .glass-panel {
-    @apply bg-[#060B14]/60 backdrop-blur-xl border border-white/10 shadow-glass rounded-3xl text-white;
+    @apply bg-white/40 backdrop-blur-2xl border border-white/20 shadow-xl rounded-3xl text-slate-900;
   }
   
   .glass-panel-hover {
-    @apply hover:bg-[#060B14]/80 hover:shadow-glass-hover hover:border-[#d4af37]/30 transition-all duration-300;
+    @apply hover:bg-white/60 hover:shadow-2xl hover:border-purple-300 transition-all duration-500;
   }
 
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-theme-goldLight to-theme-gold;
+  .glass-card {
+    @apply bg-white/30 backdrop-blur-xl border border-white/20 rounded-3xl shadow-lg;
+  }
+
+  .text-gradient-purple {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-700 to-pink-600;
+  }
+
+  .text-gradient-red {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-pink-600 to-red-700;
+  }
+  
+  .bg-mesh {
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(253, 242, 248, 0.8) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(245, 208, 254, 0.6) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(255, 255, 255, 0.4) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(245, 208, 254, 0.6) 0px, transparent 50%),
+      radial-gradient(at 50% 50%, rgba(255, 255, 255, 0.9) 0px, transparent 100%);
   }
 }
 
 body {
-  /* Warm golden biological background */
-  background-color: #060B14;
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(212, 175, 55, 0.25) 0px, transparent 60%),
-    radial-gradient(at 100% 0%, rgba(243, 229, 171, 0.15) 0px, transparent 50%),
-    radial-gradient(at 50% 50%, rgba(212, 175, 55, 0.1) 0px, transparent 60%),
-    radial-gradient(at 100% 100%, rgba(212, 175, 55, 0.2) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, rgba(13, 22, 39, 0.9) 0px, transparent 70%);
+  background-color: #fdf2f8;
+  background-image: url('/bg-dna.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   background-attachment: fixed;
   min-height: 100vh;
-  color: white;
-  @apply selection:bg-theme-gold/30;
+  color: #0f172a;
+  @apply selection:bg-purple-200/50;
+  overflow-x: hidden;
 }
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-400/20 rounded-full hover:bg-slate-400/40 transition-colors;
+}
+
+/* Adding global blur for background fixed position */
+.bg-blur-overlay {
+  position: fixed;
+  inset: 0;
+  background: inherit;
+  filter: blur(10px);
+  z-index: -1;
+}
+
