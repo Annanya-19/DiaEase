@@ -42,3 +42,10 @@ next-env.d.ts
 
 .vercel
 node_modules
+
+# Python & SQLite
+__pycache__/
+*.py[cod]
+*$py.class
+*.db
+backend/*.db
