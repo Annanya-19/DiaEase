@@ -1,4 +1,38 @@
 <<<<<<< HEAD
+# DiaEase UI
+
+A premium, modern web UI for DiaEase: an AI-powered glucose risk prediction app. This frontend focuses entirely on high-quality UX, glassmorphism aesthetics, and smooth animations.
+
+## Tech Stack
+- React 18 + Vite
+- Tailwind CSS
+- Framer Motion
+- Lucide React Icons
+- TypeScript
+
+## Requirements
+You need Node.js installed to run this project.
+
+## Getting Started
+
+1. Open a terminal in this `diaease-frontend` directory.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+4. Open the provided localhost URL in your browser to view the application.
+
+## Design Highlights
+- Warm Gold, Beige, and Soft White color palette.
+- Glassmorphism effect utilized for inputs and cards (`.glass-panel` utility).
+- Beautiful micro-animations with `framer-motion` and standard Tailwind transitions.
+- Responsive layout across all screen sizes.
+=======
+<<<<<<< HEAD
 # DiaEase
 an online platform dedicated to predict when a hypoglycaemic episode is likely and alert users before it happens.
 =======
@@ -39,3 +73,4 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 >>>>>>> backend/final
+>>>>>>> 7b1e2ce3f209abf522a7610191e514d87f35e399
